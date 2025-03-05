@@ -24,13 +24,13 @@
       align-items: center;
       justify-content: center;
     }
-    .card {
+    /* Default card styling */
+    #translatorCard {
       border: none;
       border-radius: 15px;
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
       overflow: hidden;
       transition: all 0.3s ease;
-      position: relative;
       width: 100%;
       max-width: 600px;
     }
@@ -55,34 +55,23 @@
     textarea {
       resize: none;
     }
-    /* Hide nonessential elements in compact mode */
+    /* Hide nonessential controls in compact mode */
     .compact .nonCompact {
       display: none;
     }
-    /* Compact mode toggle button positioning */
-    #compactModeBtn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 10;
-    }
-    /* Compact mode styles: full screen vertical layout with horizontal divider */
+    /* Compact mode styles: full screen vertical layout */
     .compact {
       width: 100vw;
       height: 100vh;
       border-radius: 0;
-      box-shadow: none;
-    }
-    .compact .card {
-      border-radius: 0;
-      box-shadow: none;
+      max-width: none;
     }
     .compact .card-header {
       padding: 1rem;
     }
     .compact .card-body {
       padding: 0;
-      height: calc(100% - 70px); /* Assume header height is about 70px */
+      height: calc(100vh - 70px); /* Adjust header height as needed */
     }
     .compact #textAreasWrapper {
       display: flex;
@@ -91,11 +80,19 @@
     }
     .compact .textAreaContainer {
       flex: 1;
-      margin: 0;
       padding: 10px;
+      box-sizing: border-box;
     }
+    /* Horizontal divider between text areas */
     .compact #inputTextContainer {
       border-top: 1px solid #ccc;
+    }
+    /* Compact Mode Toggle Button styling */
+    #compactModeBtn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 100;
     }
   </style>
 </head>
@@ -104,74 +101,30 @@
     <div class="card" id="translatorCard">
       <div class="card-header">
         <h2 class="mb-0">Bi-Directional Translator</h2>
-        <small class="nonCompact">Translate live as you type or from clipboard</small>
         <!-- Compact Mode Toggle Button -->
-        <button id="compactModeBtn" class="btn btn-outline-primary btn-sm">Compact Mode</button>
+        <button id="compactModeBtn" class="btn btn-outline-light btn-sm">Compact Mode</button>
       </div>
       <div class="card-body">
-        <!-- Non-compact elements -->
-        <div class="mb-3 nonCompact">
-          <label class="form-label">Translation Direction</label>
-          <div>
-            <div class="form-check form-check-inline">
-              <input
-                class="form-check-input"
-                type="radio"
-                name="direction"
-                id="directionGreekToEnglish"
-                value="greekToEnglish"
-                checked
-              />
-              <label class="form-check-label" for="directionGreekToEnglish">
-                Greek → English
-              </label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input
-                class="form-check-input"
-                type="radio"
-                name="direction"
-                id="directionEnglishToGreek"
-                value="englishToGreek"
-              />
-              <label class="form-check-label" for="directionEnglishToGreek">
-                English → Greek
-              </label>
-            </div>
+        <!-- Non-compact controls -->
+        <div class="nonCompact mb-3">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="clipboardToggle">
+            <label class="form-check-label" for="clipboardToggle">
+              Enable Auto Clipboard Scan
+            </label>
           </div>
-        </div>
-        <div class="form-check form-switch mb-3 nonCompact">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            id="clipboardToggle"
-          />
-          <label class="form-check-label" for="clipboardToggle">
-            Enable Auto Clipboard Scan
-          </label>
         </div>
         <!-- Text Areas Wrapper -->
         <div id="textAreasWrapper">
-          <!-- Translated (output) area -->
-          <div class="mb-3 textAreaContainer" id="outputTextContainer">
+          <!-- Translated Text Area -->
+          <div class="textAreaContainer" id="outputTextContainer">
             <label for="outputText" class="form-label">Translated Text</label>
-            <textarea
-              class="form-control"
-              id="outputText"
-              rows="4"
-              placeholder="Translated text will appear here..."
-              readonly
-            ></textarea>
+            <textarea class="form-control" id="outputText" rows="6" placeholder="Translated text will appear here..." readonly></textarea>
           </div>
-          <!-- Input area -->
-          <div class="mb-3 textAreaContainer" id="inputTextContainer">
+          <!-- Input Text Area -->
+          <div class="textAreaContainer" id="inputTextContainer">
             <label for="inputText" class="form-label">Input Text</label>
-            <textarea
-              class="form-control"
-              id="inputText"
-              rows="4"
-              placeholder="Type or paste your text here..."
-            ></textarea>
+            <textarea class="form-control" id="inputText" rows="6" placeholder="Type or paste your text here..."></textarea>
           </div>
         </div>
       </div>
@@ -220,19 +173,15 @@
       return result;
     }
 
-    // Main translation handler that checks the selected direction.
+    // Main translation handler.
+    // (This sample uses Greek → English as default; if you need a two‑way toggle, you could add additional controls.)
     function updateTranslation(text) {
-      const direction = document.querySelector('input[name="direction"]:checked').value;
-      let translated = "";
-      if (direction === "greekToEnglish") {
-        translated = translateGreekToEnglish(text);
-      } else {
-        translated = translateEnglishToGreek(text);
-      }
+      // Default direction: Greek → English.
+      const translated = translateGreekToEnglish(text);
       document.getElementById("outputText").value = translated;
     }
 
-    // Event listener for manual input.
+    // Update translation when input changes.
     document.getElementById("inputText").addEventListener("input", function () {
       updateTranslation(this.value);
     });
@@ -258,23 +207,22 @@
           updateTranslation(text);
         }
       }).catch((err) => {
-        console.error("Error reading clipboard: ", err);
+        console.error("Error reading clipboard:", err);
       });
       setTimeout(scanClipboard, 2000);
     }
 
     // Compact mode toggle functionality.
     const compactModeBtn = document.getElementById("compactModeBtn");
-    const translatorCard = document.getElementById("translatorCard");
     let compactMode = false;
-
-    compactModeBtn.addEventListener("click", function() {
+    compactModeBtn.addEventListener("click", function () {
+      const card = document.getElementById("translatorCard");
       compactMode = !compactMode;
       if (compactMode) {
-        translatorCard.classList.add("compact");
+        card.classList.add("compact");
         compactModeBtn.textContent = "Exit Compact Mode";
       } else {
-        translatorCard.classList.remove("compact");
+        card.classList.remove("compact");
         compactModeBtn.textContent = "Compact Mode";
       }
     });
