@@ -15,25 +15,21 @@
     rel="stylesheet"
   />
   <style>
+    /* ----- Normal Mode Styles ----- */
     body {
       font-family: 'Montserrat', sans-serif;
-      background: linear-gradient(135deg, #74ABE2, #5563DE);
-      min-height: 100vh;
-      margin: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: #f8f9fa;
+      padding: 20px;
     }
-    /* Default (normal) mode styling */
     #translatorCard {
-      border: none;
-      border-radius: 15px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
-      overflow: hidden;
-      transition: all 0.3s ease;
-      width: 100%;
-      max-width: 600px;
       background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+      max-width: 600px;
+      margin: auto;
+      transition: all 0.3s ease;
+      position: relative;
     }
     .card-header {
       background: #5563DE;
@@ -44,7 +40,6 @@
     }
     .card-body {
       padding: 1.5rem;
-      background: #fff;
     }
     .form-label {
       font-weight: 600;
@@ -52,15 +47,23 @@
     .form-control {
       border-radius: 8px;
       font-size: 1rem;
+      margin-top: 0.25rem;
     }
     textarea {
-      resize: none;
+      resize: vertical;
     }
-    /* Elements only visible in normal mode */
     .nonCompact {
       display: block;
     }
-    /* Compact mode styles */
+    /* Position the Compact Mode toggle in normal mode as well */
+    #compactModeBtn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 100;
+    }
+    
+    /* ----- Compact Mode Styles ----- */
     .compact {
       width: 100vw;
       height: 100vh;
@@ -75,12 +78,11 @@
     }
     .compact .card-body {
       padding: 0;
-      height: calc(100vh - 50px); /* Adjust header height if needed */
+      height: calc(100vh - 50px);
     }
     .compact .nonCompact {
       display: none;
     }
-    /* In compact mode, use a full‑screen vertical layout with translucent placeholders */
     .compact #textAreasWrapper {
       display: flex;
       flex-direction: column;
@@ -90,6 +92,18 @@
       flex: 1;
       position: relative;
       overflow: hidden;
+    }
+    /* Add a horizontal divider between the two areas */
+    .compact #inputTextContainer {
+      border-top: 1px solid #ccc;
+    }
+    /* Hide native textarea appearance in compact mode */
+    .compact textarea {
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+      width: 100%;
+      height: 100%;
     }
     /* Translucent placeholder overlay for each area */
     .compact .placeholder {
@@ -107,38 +121,12 @@
       pointer-events: none;
       transition: opacity 0.3s ease;
     }
-    /* Hide placeholder when text is entered (if desired) */
-    .compact textarea:not(:placeholder-shown) + .placeholder {
-      opacity: 0;
-    }
-    /* Horizontal divider line between areas */
-    .compact #divider {
-      height: 1px;
-      background: #ccc;
-      width: 100%;
-    }
-    /* Hide the native textareas in compact mode – they are still used for their values */
-    .compact textarea {
-      opacity: 0;
-      pointer-events: none;
-      position: absolute;
-      width: 100%;
-      height: 100%;
-    }
-    /* Compact Mode Toggle Button (always visible) */
-    #compactModeBtn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 100;
-    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="card" id="translatorCard">
       <div class="card-header">
-        <!-- Normal mode header -->
         <h2 class="mb-0 nonCompact">Bi-Directional Translator</h2>
         <div class="nonCompact mb-2">
           <div class="btn-group" role="group" aria-label="Translation Direction">
@@ -152,21 +140,20 @@
             <label class="form-check-label" for="clipboardToggle">Auto Clipboard</label>
           </div>
         </div>
-        <!-- Compact mode header: minimal text is not required -->
-        <!-- Compact Mode Toggle Button (always visible) -->
         <button id="compactModeBtn" class="btn btn-outline-light btn-sm">Compact Mode</button>
       </div>
       <div class="card-body">
         <div id="textAreasWrapper">
-          <!-- Top area: Translated Text -->
-          <div class="textAreaContainer" id="outputTextContainer">
-            <textarea id="outputText" readonly placeholder="Translated text will appear here..."></textarea>
+          <!-- Normal mode: Display labeled textareas -->
+          <div class="mb-3 textAreaContainer" id="outputTextContainer">
+            <label for="outputText" class="form-label nonCompact">Translated Text</label>
+            <textarea class="form-control nonCompact" id="outputText" rows="6" placeholder="Translated text will appear here..." readonly></textarea>
+            <!-- Compact mode placeholder overlay -->
             <div class="placeholder">Translated Text</div>
           </div>
-          <div id="divider"></div>
-          <!-- Bottom area: Input Text -->
-          <div class="textAreaContainer" id="inputTextContainer">
-            <textarea id="inputText" placeholder="Type or paste your text here..."></textarea>
+          <div class="mb-3 textAreaContainer" id="inputTextContainer">
+            <label for="inputText" class="form-label nonCompact">Input Text</label>
+            <textarea class="form-control nonCompact" id="inputText" rows="6" placeholder="Type or paste your text here..."></textarea>
             <div class="placeholder">Input Text</div>
           </div>
         </div>
@@ -186,11 +173,11 @@
       'ζ': 'z', 'χ': 'x', 'ψ': 'c', 'ω': 'v', 'β': 'b',
       'ν': 'n', 'μ': 'm'
     };
-    // Extend for uppercase.
+    // Extend mapping for uppercase letters.
     for (let key in mappingGreekToEnglish) {
       mappingGreekToEnglish[key.toUpperCase()] = mappingGreekToEnglish[key].toUpperCase();
     }
-    // Inverse mapping for English → Greek.
+    // Create the inverse mapping for English → Greek.
     const mappingEnglishToGreek = {};
     for (let greek in mappingGreekToEnglish) {
       const english = mappingGreekToEnglish[greek];
@@ -220,12 +207,12 @@
         ? translateGreekToEnglish(text) 
         : translateEnglishToGreek(text);
       document.getElementById("outputText").value = translated;
-      // In compact mode update the top placeholder.
+      // In compact mode, update the placeholder text (if empty, show label)
       if(document.getElementById("translatorCard").classList.contains("compact")){
         document.querySelector("#outputTextContainer .placeholder").textContent = translated || "Translated Text";
       }
     }
-    // Listen to manual input.
+    // Update translation when input changes.
     document.getElementById("inputText").addEventListener("input", function () {
       updateTranslation(this.value);
     });
@@ -233,7 +220,7 @@
     let clipboardAutoScanEnabled = false;
     let previousClipboardText = "";
     const clipboardToggle = document.getElementById("clipboardToggle");
-    if(clipboardToggle){
+    if (clipboardToggle) {
       clipboardToggle.addEventListener("change", function () {
         clipboardAutoScanEnabled = this.checked;
         if (clipboardAutoScanEnabled) { scanClipboard(); }
@@ -252,7 +239,7 @@
       });
       setTimeout(scanClipboard, 2000);
     }
-    // Compact mode toggle.
+    // Compact mode toggle functionality.
     const compactModeBtn = document.getElementById("compactModeBtn");
     let compactMode = false;
     compactModeBtn.addEventListener("click", function () {
