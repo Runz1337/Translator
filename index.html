@@ -59,7 +59,7 @@
     #translatorCard:not(.compact) .placeholder {
       display: none;
     }
-    /* Position the Compact Mode toggle in normal mode as well */
+    /* Position the Compact Mode toggle in normal mode */
     #compactModeBtn {
       position: absolute;
       top: 10px;
@@ -82,12 +82,15 @@
     }
     .compact .card-body {
       padding: 0;
-      height: calc(100vh - 50px);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
     .compact .nonCompact {
       display: none;
     }
     .compact #textAreasWrapper {
+      flex: 1;
       display: flex;
       flex-direction: column;
       height: 100%;
@@ -125,6 +128,15 @@
       pointer-events: none;
       transition: opacity 0.3s ease;
     }
+    /* Elements visible only in compact mode */
+    .compactOnly {
+      display: none;
+    }
+    .compact .compactOnly {
+      display: block;
+      text-align: center;
+      padding: 0.5rem;
+    }
   </style>
 </head>
 <body>
@@ -152,9 +164,6 @@
           <div class="mb-3 textAreaContainer" id="outputTextContainer">
             <label for="outputText" class="form-label nonCompact">Translated Text</label>
             <textarea class="form-control nonCompact" id="outputText" rows="6" placeholder="Translated text will appear here..." readonly></textarea>
-            <div class="d-flex justify-content-end nonCompact mt-2">
-              <button id="copyOutputBtn" class="btn btn-secondary btn-sm">Copy</button>
-            </div>
             <!-- Compact mode placeholder overlay -->
             <div class="placeholder">Translated Text</div>
           </div>
@@ -165,6 +174,8 @@
             <div class="placeholder">Input Text</div>
           </div>
         </div>
+        <!-- Exit Compact Mode button (visible only in compact mode) -->
+        <button id="exitCompactBtn" class="btn btn-outline-primary compactOnly">Exit Compact Mode</button>
       </div>
     </div>
   </div>
@@ -215,14 +226,16 @@
         ? translateGreekToEnglish(text) 
         : translateEnglishToGreek(text);
       document.getElementById("outputText").value = translated;
-      // In compact mode, update the placeholder text (if empty, show label)
+      // In compact mode, update the placeholder text for the output area.
       if(document.getElementById("translatorCard").classList.contains("compact")){
         document.querySelector("#outputTextContainer .placeholder").textContent = translated || "Translated Text";
       }
     }
-    // Update translation when input changes.
+    // Update translation and input placeholder on input change.
     document.getElementById("inputText").addEventListener("input", function () {
       updateTranslation(this.value);
+      var inputPlaceholder = document.querySelector("#inputTextContainer .placeholder");
+      inputPlaceholder.textContent = this.value ? "" : "Input Text";
     });
     // Auto-clipboard scan.
     let clipboardAutoScanEnabled = false;
@@ -249,30 +262,34 @@
     }
     // Compact mode toggle functionality.
     const compactModeBtn = document.getElementById("compactModeBtn");
+    const exitCompactBtn = document.getElementById("exitCompactBtn");
     let compactMode = false;
     compactModeBtn.addEventListener("click", function () {
       const card = document.getElementById("translatorCard");
-      compactMode = !compactMode;
-      if (compactMode) {
-        card.classList.add("compact");
-        compactModeBtn.textContent = "Exit Compact Mode";
-      } else {
-        card.classList.remove("compact");
-        compactModeBtn.textContent = "Compact Mode";
-      }
+      compactMode = true;
+      card.classList.add("compact");
     });
-    // Copy button functionality for output
-    const copyOutputBtn = document.getElementById("copyOutputBtn");
-    copyOutputBtn.addEventListener("click", function() {
+    exitCompactBtn.addEventListener("click", function () {
+      const card = document.getElementById("translatorCard");
+      compactMode = false;
+      card.classList.remove("compact");
+    });
+    // Copy to clipboard when clicking on the output area.
+    document.getElementById("outputTextContainer").addEventListener("click", function() {
       const outputText = document.getElementById("outputText").value;
-      navigator.clipboard.writeText(outputText).then(() => {
-        copyOutputBtn.textContent = "Copied!";
-        setTimeout(() => {
-          copyOutputBtn.textContent = "Copy";
-        }, 2000);
-      }).catch(err => {
-        console.error("Error copying text: ", err);
-      });
+      if (outputText.trim()) {
+        navigator.clipboard.writeText(outputText).then(() => {
+          let overlay = document.querySelector("#outputTextContainer .placeholder");
+          if (overlay) {
+            overlay.textContent = "Copied!";
+            setTimeout(() => {
+              overlay.textContent = outputText || "Translated Text";
+            }, 2000);
+          }
+        }).catch(err => {
+          console.error("Error copying text: ", err);
+        });
+      }
     });
   </script>
 </body>
