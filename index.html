@@ -4,43 +4,122 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bi-Directional Translator</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet" />
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
   <style>
-    /* Existing styles remain unchanged except for additions below */
-    body { font-family: 'Montserrat', sans-serif; background: #f8f9fa; padding: 20px; }
-    #translatorCard { background: #fff; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; max-width: 600px; margin: auto; transition: all 0.3s ease; position: relative; }
-    .card-header { background: #5563DE; color: #fff; padding: 1.5rem; text-align: center; position: relative; }
-    .card-body { padding: 1.5rem; }
-    .form-label { font-weight: 600; }
-    .form-control { border-radius: 8px; font-size: 1rem; margin-top: 0.25rem; }
-    textarea { resize: vertical; }
-    .nonCompact { display: block; }
-    #compactModeBtn { position: absolute; top: 10px; right: 10px; z-index: 100; }
-    .compact { width: 100vw; height: 100vh; border-radius: 0; max-width: none; background: #fff; box-shadow: none; }
-    .compact .card-header { padding: 0.5rem; text-align: center; }
-    .compact .card-body { padding: 0; height: calc(100vh - 50px); }
-    .compact .nonCompact { display: none; }
-    .compact #textAreasWrapper { display: flex; flex-direction: column; height: 100%; }
-    .compact .textAreaContainer { flex: 1; position: relative; overflow: hidden; }
-    .compact #inputTextContainer { border-top: 1px solid #ccc; }
-    .compact textarea { opacity: 0; pointer-events: none; position: absolute; width: 100%; height: 100%; }
-    .compact .placeholder { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); display: flex; justify-content: center; align-items: center; font-size: 1.2rem; color: #666; pointer-events: none; transition: opacity 0.3s ease; }
-
-    /* New CSS Rules */
-    #translatorCard:not(.compact) .placeholder {
+    /* ----- Normal Mode Styles ----- */
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: #f8f9fa;
+      padding: 20px;
+    }
+    #translatorCard {
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+      max-width: 600px;
+      margin: auto;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .card-header {
+      background: #5563DE;
+      color: #fff;
+      padding: 1.5rem;
+      text-align: center;
+      position: relative;
+    }
+    .card-body {
+      padding: 1.5rem;
+    }
+    .form-label {
+      font-weight: 600;
+    }
+    .form-control {
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-top: 0.25rem;
+    }
+    textarea {
+      resize: vertical;
+    }
+    .nonCompact {
+      display: block;
+    }
+    /* Position the Compact Mode toggle in normal mode as well */
+    #compactModeBtn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 100;
+    }
+    
+    /* ----- Compact Mode Styles ----- */
+    .compact {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      max-width: none;
+      background: #fff;
+      box-shadow: none;
+    }
+    .compact .card-header {
+      padding: 0.5rem;
+      text-align: center;
+    }
+    .compact .card-body {
+      padding: 0;
+      height: calc(100vh - 50px);
+    }
+    .compact .nonCompact {
       display: none;
     }
-    .compact #inputText {
-      opacity: 1;
-      pointer-events: auto;
-      border: none;
-      padding: 10px;
-      box-sizing: border-box;
+    .compact #textAreasWrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
     }
-    .compact #outputText {
+    .compact .textAreaContainer {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Add a horizontal divider between the two areas */
+    .compact #inputTextContainer {
+      border-top: 1px solid #ccc;
+    }
+    /* Hide native textarea appearance in compact mode */
+    .compact textarea {
       opacity: 0;
       pointer-events: none;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+    /* Translucent placeholder overlay for each area */
+    .compact .placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.2rem;
+      color: #666;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
     }
   </style>
 </head>
@@ -62,13 +141,14 @@
           </div>
         </div>
         <button id="compactModeBtn" class="btn btn-outline-light btn-sm">Compact Mode</button>
-        <button id="copyBtn" class="btn btn-outline-light btn-sm ms-2">Copy Output</button>
       </div>
       <div class="card-body">
         <div id="textAreasWrapper">
+          <!-- Normal mode: Display labeled textareas -->
           <div class="mb-3 textAreaContainer" id="outputTextContainer">
             <label for="outputText" class="form-label nonCompact">Translated Text</label>
             <textarea class="form-control nonCompact" id="outputText" rows="6" placeholder="Translated text will appear here..." readonly></textarea>
+            <!-- Compact mode placeholder overlay -->
             <div class="placeholder">Translated Text</div>
           </div>
           <div class="mb-3 textAreaContainer" id="inputTextContainer">
@@ -81,31 +161,98 @@
     </div>
   </div>
 
+  <!-- Bootstrap Bundle JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // [Existing translation mappings and functions unchanged]
-    const mappingGreekToEnglish = { /* ... */ };
-    for (let key in mappingGreekToEnglish) { /* ... */ }
-    const mappingEnglishToGreek = { /* ... */ };
-    function translateGreekToEnglish(input) { /* ... */ }
-    function translateEnglishToGreek(input) { /* ... */ }
-    function updateTranslation(text) { /* ... */ }
-    document.getElementById("inputText").addEventListener("input", function () { /* ... */ });
-    let clipboardAutoScanEnabled = false; /* ... */
-    function scanClipboard() { /* ... */ }
-    const compactModeBtn = document.getElementById("compactModeBtn"); /* ... */
-    compactModeBtn.addEventListener("click", function () { /* ... */ });
-
-    // New Copy Button Functionality
-    document.getElementById("copyBtn").addEventListener("click", function () {
-      const text = document.getElementById("outputText").value;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Copied to clipboard!");
-      }).catch((err) => {
-        console.error("Error copying to clipboard:", err);
+    // Mapping for Greek → English based on a typical Greek QWERTY layout.
+    const mappingGreekToEnglish = {
+      ';': 'q', 'ς': 'w', 'ε': 'e', 'ρ': 'r', 'τ': 't',
+      'υ': 'y', 'θ': 'u', 'ι': 'i', 'ο': 'o', 'π': 'p',
+      'α': 'a', 'σ': 's', 'δ': 'd', 'φ': 'f', 'γ': 'g',
+      'η': 'h', 'ξ': 'j', 'κ': 'k', 'λ': 'l',
+      'ζ': 'z', 'χ': 'x', 'ψ': 'c', 'ω': 'v', 'β': 'b',
+      'ν': 'n', 'μ': 'm'
+    };
+    // Extend mapping for uppercase letters.
+    for (let key in mappingGreekToEnglish) {
+      mappingGreekToEnglish[key.toUpperCase()] = mappingGreekToEnglish[key].toUpperCase();
+    }
+    // Create the inverse mapping for English → Greek.
+    const mappingEnglishToGreek = {};
+    for (let greek in mappingGreekToEnglish) {
+      const english = mappingGreekToEnglish[greek];
+      mappingEnglishToGreek[english] = greek;
+    }
+    // Translation functions.
+    function translateGreekToEnglish(input) {
+      let result = "";
+      for (let char of input) {
+        result += mappingGreekToEnglish[char] !== undefined ? mappingGreekToEnglish[char] : char;
+      }
+      return result;
+    }
+    function translateEnglishToGreek(input) {
+      let result = "";
+      for (let char of input) {
+        result += mappingEnglishToGreek[char] !== undefined ? mappingEnglishToGreek[char] : char;
+      }
+      return result;
+    }
+    // Main translation handler.
+    function updateTranslation(text) {
+      let direction = "greekToEnglish";
+      const radio = document.querySelector('input[name="direction"]:checked');
+      if (radio) { direction = radio.value; }
+      let translated = (direction === "greekToEnglish") 
+        ? translateGreekToEnglish(text) 
+        : translateEnglishToGreek(text);
+      document.getElementById("outputText").value = translated;
+      // In compact mode, update the placeholder text (if empty, show label)
+      if(document.getElementById("translatorCard").classList.contains("compact")){
+        document.querySelector("#outputTextContainer .placeholder").textContent = translated || "Translated Text";
+      }
+    }
+    // Update translation when input changes.
+    document.getElementById("inputText").addEventListener("input", function () {
+      updateTranslation(this.value);
+    });
+    // Auto-clipboard scan.
+    let clipboardAutoScanEnabled = false;
+    let previousClipboardText = "";
+    const clipboardToggle = document.getElementById("clipboardToggle");
+    if (clipboardToggle) {
+      clipboardToggle.addEventListener("change", function () {
+        clipboardAutoScanEnabled = this.checked;
+        if (clipboardAutoScanEnabled) { scanClipboard(); }
       });
+    }
+    function scanClipboard() {
+      if (!clipboardAutoScanEnabled) return;
+      navigator.clipboard.readText().then((text) => {
+        if (text && text !== previousClipboardText) {
+          previousClipboardText = text;
+          document.getElementById("inputText").value = text;
+          updateTranslation(text);
+        }
+      }).catch((err) => {
+        console.error("Error reading clipboard:", err);
+      });
+      setTimeout(scanClipboard, 2000);
+    }
+    // Compact mode toggle functionality.
+    const compactModeBtn = document.getElementById("compactModeBtn");
+    let compactMode = false;
+    compactModeBtn.addEventListener("click", function () {
+      const card = document.getElementById("translatorCard");
+      compactMode = !compactMode;
+      if (compactMode) {
+        card.classList.add("compact");
+        compactModeBtn.textContent = "Exit Compact Mode";
+      } else {
+        card.classList.remove("compact");
+        compactModeBtn.textContent = "Compact Mode";
+      }
     });
   </script>
-  <script>(function(){/* Existing iframe script unchanged */})();</script>
 </body>
 </html>
