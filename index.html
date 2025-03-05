@@ -31,6 +31,8 @@
       overflow: hidden;
       transition: all 0.3s ease;
       position: relative;
+      width: 100%;
+      max-width: 600px;
     }
     .card-header {
       background: #5563DE;
@@ -42,7 +44,6 @@
     .card-body {
       padding: 1.5rem;
       background: #fff;
-      transition: padding 0.3s ease;
     }
     .form-label {
       font-weight: 600;
@@ -54,35 +55,47 @@
     textarea {
       resize: none;
     }
-    /* Elements we want hidden in compact mode */
+    /* Hide nonessential elements in compact mode */
     .compact .nonCompact {
       display: none;
     }
-    /* Compact mode styles for text areas */
-    .compact #textAreasWrapper {
-      display: flex;
-      gap: 1%;
-    }
-    .compact .textAreaContainer {
-      width: 49%;
-    }
-    .compact #outputTextContainer {
-      border-right: 1px solid #ccc;
-      padding-right: 10px;
-    }
-    .compact #inputTextContainer {
-      padding-left: 10px;
-    }
-    /* Optional: Adjust card-body padding in compact mode */
-    .compact .card-body {
-      padding: 1rem;
-    }
-    /* Compact Mode Toggle Button positioning */
+    /* Compact mode toggle button positioning */
     #compactModeBtn {
       position: absolute;
       top: 10px;
       right: 10px;
       z-index: 10;
+    }
+    /* Compact mode styles: full screen vertical layout with horizontal divider */
+    .compact {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .compact .card {
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .compact .card-header {
+      padding: 1rem;
+    }
+    .compact .card-body {
+      padding: 0;
+      height: calc(100% - 70px); /* Assume header height is about 70px */
+    }
+    .compact #textAreasWrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .compact .textAreaContainer {
+      flex: 1;
+      margin: 0;
+      padding: 10px;
+    }
+    .compact #inputTextContainer {
+      border-top: 1px solid #ccc;
     }
   </style>
 </head>
@@ -91,7 +104,7 @@
     <div class="card" id="translatorCard">
       <div class="card-header">
         <h2 class="mb-0">Bi-Directional Translator</h2>
-        <small>Translate live as you type or from clipboard</small>
+        <small class="nonCompact">Translate live as you type or from clipboard</small>
         <!-- Compact Mode Toggle Button -->
         <button id="compactModeBtn" class="btn btn-outline-primary btn-sm">Compact Mode</button>
       </div>
@@ -139,6 +152,7 @@
         </div>
         <!-- Text Areas Wrapper -->
         <div id="textAreasWrapper">
+          <!-- Translated (output) area -->
           <div class="mb-3 textAreaContainer" id="outputTextContainer">
             <label for="outputText" class="form-label">Translated Text</label>
             <textarea
@@ -149,6 +163,7 @@
               readonly
             ></textarea>
           </div>
+          <!-- Input area -->
           <div class="mb-3 textAreaContainer" id="inputTextContainer">
             <label for="inputText" class="form-label">Input Text</label>
             <textarea
@@ -236,7 +251,6 @@
 
     function scanClipboard() {
       if (!clipboardAutoScanEnabled) return;
-      // Attempt to read the clipboard (requires HTTPS and user permission).
       navigator.clipboard.readText().then((text) => {
         if (text && text !== previousClipboardText) {
           previousClipboardText = text;
@@ -246,7 +260,6 @@
       }).catch((err) => {
         console.error("Error reading clipboard: ", err);
       });
-      // Poll every 2 seconds if enabled.
       setTimeout(scanClipboard, 2000);
     }
 
