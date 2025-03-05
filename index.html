@@ -55,6 +55,10 @@
     .nonCompact {
       display: block;
     }
+    /* Hide the placeholder overlays in normal mode */
+    #translatorCard:not(.compact) .placeholder {
+      display: none;
+    }
     /* Position the Compact Mode toggle in normal mode as well */
     #compactModeBtn {
       position: absolute;
@@ -144,13 +148,17 @@
       </div>
       <div class="card-body">
         <div id="textAreasWrapper">
-          <!-- Normal mode: Display labeled textareas -->
+          <!-- Output Area -->
           <div class="mb-3 textAreaContainer" id="outputTextContainer">
             <label for="outputText" class="form-label nonCompact">Translated Text</label>
             <textarea class="form-control nonCompact" id="outputText" rows="6" placeholder="Translated text will appear here..." readonly></textarea>
+            <div class="d-flex justify-content-end nonCompact mt-2">
+              <button id="copyOutputBtn" class="btn btn-secondary btn-sm">Copy</button>
+            </div>
             <!-- Compact mode placeholder overlay -->
             <div class="placeholder">Translated Text</div>
           </div>
+          <!-- Input Area -->
           <div class="mb-3 textAreaContainer" id="inputTextContainer">
             <label for="inputText" class="form-label nonCompact">Input Text</label>
             <textarea class="form-control nonCompact" id="inputText" rows="6" placeholder="Type or paste your text here..."></textarea>
@@ -252,6 +260,19 @@
         card.classList.remove("compact");
         compactModeBtn.textContent = "Compact Mode";
       }
+    });
+    // Copy button functionality for output
+    const copyOutputBtn = document.getElementById("copyOutputBtn");
+    copyOutputBtn.addEventListener("click", function() {
+      const outputText = document.getElementById("outputText").value;
+      navigator.clipboard.writeText(outputText).then(() => {
+        copyOutputBtn.textContent = "Copied!";
+        setTimeout(() => {
+          copyOutputBtn.textContent = "Copy";
+        }, 2000);
+      }).catch(err => {
+        console.error("Error copying text: ", err);
+      });
     });
   </script>
 </body>
